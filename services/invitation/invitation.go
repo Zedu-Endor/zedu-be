@@ -63,6 +63,11 @@ func GeneralInvitationVerify(req models.VerifyShareableInvitationLink, authentic
 		return responseData, http.StatusInternalServerError, fmt.Errorf("failed to verify invitation: %s", err)
 	}
 
+	if invite.ExpiresAt.Before(time.Now().UTC()) {
+		logger.Error("invitation link has expired")
+		return responseData, http.StatusBadRequest, errors.New("invitation link has expired")
+	}
+
 	_, err = org.CheckOrgExists(invite.OrganisationID, db.Postgresql)
 	if err != nil {
 		return responseData, http.StatusNotFound, errors.New("organisation not found or has been deleted")
